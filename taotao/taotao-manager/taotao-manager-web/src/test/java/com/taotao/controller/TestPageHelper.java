@@ -11,6 +11,9 @@ import com.github.pagehelper.PageInfo;
 import com.taotao.mapper.TbItemMapper;
 import com.taotao.pojo.TbItem;
 import com.taotao.pojo.TbItemExample;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 public class TestPageHelper {
 
@@ -35,4 +38,43 @@ public class TestPageHelper {
 		System.out.println("共有商品："+ total);
 		
 	}
+
+	@Test
+	public void fun () {
+		Jedis jedis = new Jedis("192.168.139.129", 6379);
+		jedis.set("name", "bar");
+		String name = jedis.get("name");
+		System.out.println(name);
+		jedis.close();
+
+	}
+
+	@Test
+	public void pool() {
+		JedisPoolConfig config = new JedisPoolConfig();
+		//最大连接数
+		config.setMaxTotal(30);
+		//最大连接空闲数
+		config.setMaxIdle(2);
+
+		JedisPool pool = new JedisPool(config, "192.168.139.129", 6379);
+		Jedis jedis = null;
+
+		try  {
+			jedis = pool.getResource();
+
+			jedis.set("name", "lisi");
+			String name = jedis.get("name");
+			System.out.println(name);
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}finally{
+			if(jedis != null){
+				//关闭连接
+				jedis.close();
+			}
+		}
+
+	}
+
 }
